@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="IntegerParser.fs" />
+    <None Include="CreateOnlyValidTypes.fsx" />
     <None Include="Basics.fsx" />
     <Compile Include="Library.fs" />
   </ItemGroup>
-
-  <ItemGroup />
 
 </Project>

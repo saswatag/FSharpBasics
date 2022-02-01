@@ -107,3 +107,113 @@ let numbers = [1 .. 500]
 fizzBuzz numbers
 
 /////////////////////////////////////////
+
+let elem1::elem2::rest = [1..10]
+
+printfn $"elem1: {elem1}"
+printfn $"elem2: {elem2}"
+printfn $"rest: {rest}"
+
+rest |> List.map (fun element -> printfn $"element: {element}")
+
+/////////////////////////////////////////
+
+let testFunction = 
+    let x = 40 in
+        let y = 50 in
+            let z = x + y
+            z
+
+let testFunction' = 
+    let x = 40
+    x |> (fun x -> 
+        let y = 50
+        y |> (fun y -> 
+            x + y))
+
+let testFunction'' = 
+    40 |> (fun x ->         
+        50 |> (fun y -> 
+            x + y))
+
+
+testFunction
+testFunction'
+testFunction''
+
+////////////////////////////////////////
+
+// any function in f# take only one parameter
+
+let someIntermediateFunction a b = 
+    a + b + 10
+
+let addXY x y =
+    let partial = someIntermediateFunction x
+    x + y + partial 1
+
+
+addXY 10 20
+
+//////////////////////////////////////
+
+let tryParseInt (s: string) = 
+    try 
+        s |> int |> Some
+    with :? System.FormatException -> 
+        None
+
+tryParseInt "3"
+tryParseInt "sdsd"
+
+/////////////////////////////////////
+
+module IntegerParser = 
+    let tryParseIntegerFromString (inputString: string) = 
+        try 
+            inputString |> int |> Some
+        with :? System.FormatException -> 
+            None
+
+module StringAddExplicitWorkflow = 
+    open IntegerParser
+
+    let log message = 
+        printfn message
+
+    let stringAddWorkflow string1 string2 string3 string4 = 
+        let int1MayBe = string1 |> tryParseIntegerFromString
+        match int1MayBe with
+        | None -> 
+            log $"{string1} is not and integer. Aborting add workflow"
+            None
+        | Some int1 ->
+
+            log $"{string1} is an integer. Proceeding with add workflow"    
+            let int2MayBe = string2 |> tryParseIntegerFromString
+            match int2MayBe with
+            | None -> 
+                log $"{string2} is not and integer. Aborting add workflow"
+                None
+            | Some int2 ->
+
+                log $"{string2} is an integer. Proceeding with add workflow"  
+                let int3MayBe = string3 |> tryParseIntegerFromString
+                match int3MayBe with
+                | None -> 
+                    log $"{string3} is not and integer. Aborting add workflow"
+                    None
+                | Some int3 ->
+
+                    log $"{string3} is an integer. Proceeding with add workflow"  
+                    let int4MayBe = string4 |> tryParseIntegerFromString
+                    match int4MayBe with
+                    | None -> 
+                        log $"{string4} is not and integer. Aborting add workflow"
+                        None
+                    | Some int4 ->
+                        log $"{string4} is an integer. Proceeding with add workflow"  
+                        Some ( int1 + int2 + int3 + int4 )
+
+StringAddExplicitWorkflow.stringAddWorkflow "10" "20" "30" "40"
+StringAddExplicitWorkflow.stringAddWorkflow "10" "20" "30" "abc"

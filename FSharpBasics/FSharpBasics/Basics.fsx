@@ -217,3 +217,355 @@ module StringAddExplicitWorkflow =
 
 StringAddExplicitWorkflow.stringAddWorkflow "10" "20" "30" "40"
 StringAddExplicitWorkflow.stringAddWorkflow "10" "20" "30" "abc"
+
+////////////////////////////////////////////////////////////////////
+
+open Microsoft.FSharp.Control
+let getCustomerId name =
+    if (name = "")
+    then Error "getCustomerId failed"
+    else Ok "Cust42"
+
+
+///////////////////////////////////////////////////////////////////
+
+let add1 x = x + 1
+
+Some 2 |> Option.map add1
+
+2 |> Option.map add1
+
+/////////////////////////////////////
+
+let tryParseIntegerFromStringOption (inputString: string) = 
+    try 
+        inputString |> int |> Some
+    with :? System.FormatException -> 
+        None
+
+let tryParseIntegerFromStringResult (inputString: string) = 
+    try 
+        inputString |> int |> Ok
+    with :? System.FormatException -> 
+        Error $"Input {inputString} is not a string"
+
+type OrderQty = OrderQty of int
+
+let toOrderQty qty =
+    if qty >= 1 then
+        Some (OrderQty qty)
+    else
+        // only positive numbers allowed
+        None
+
+let toOrderQtyResult qty =
+    if qty >= 1 then
+        Ok (OrderQty qty)
+    else
+        Error "only positive numbers allowed"
+
+let parseOrderQty str =
+    str |> tryParseIntegerFromStringResult |> Result.bind toOrderQtyResult
+
+
+type ResultBuilder() =
+
+    member this.Bind(m, f) =
+        match m with
+        | Error e -> Error e
+        | Ok a ->
+            printfn "\tSuccessful: %A %A" a (f.GetType)
+            f a
+
+    member this.Return(x) =
+        Ok x
+
+let result = new ResultBuilder()
+
+type OptionBuilder() =
+
+    member this.Bind(m, f) =
+        Option.bind f m
+
+    member this.Return(x) =
+        Some x
+
+let option = new OptionBuilder()
+
+let parseOrderResultCompExpression (str: string) =
+    result {
+        let! number = 
+            tryParseIntegerFromStringResult str
+            |> Result.map(fun x -> x + 10)
+            |> Result.mapError (fun x -> "Some error while parsing")
+
+        let! orderQuantity = 
+            toOrderQtyResult number
+            |> Result.mapError (fun x -> "Some error in order quantity")
+
+
+        return orderQuantity        
+        }
+    
+
+parseOrderResultCompExpression "2"
+
+let parseOrderOptionCompExpression (str: string) =
+    option {
+        let! number = tryParseIntegerFromStringOption str
+        let! orderQuantity = toOrderQty number
+        return orderQuantity        
+        }
+    
+parseOrderResultCompExpression "asdsadasd"
+
+parseOrderOptionCompExpression "sdfsdf"
+
+////////////////////////////////////////////
+
+type TypesAvailable = 
+    | TypeA
+    | TypeB
+
+type SomeTypeA = 
+    {
+        Value: string
+        OtherValue: int
+    }
+
+type SomeTypeB = 
+    {
+        Value: string
+    }
+
+type ResponseData = 
+    {
+        TypeAData: SomeTypeA list
+        TypeBData: SomeTypeB list
+    }
+
+type DataSource = 
+    {
+        TypeOfData: TypesAvailable
+        Value: string
+    }
+
+let getData = 
+    
+    printfn $"Total iterations"
+
+    let sourceData = 
+        [
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value 2"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value 2"
+            }
+        ]
+    
+    {
+        TypeAData = sourceData
+                    |> List.map
+                        (function
+                            | {DataSource.TypeOfData = typeOfData; DataSource.Value = value;} when typeOfData = TypesAvailable.TypeA ->
+                                { 
+                                    Value = value
+                                    OtherValue = 1
+                                }                                
+                                |> Some
+
+                            | _ -> None
+                        )
+                    |> List.choose id
+        
+        TypeBData = sourceData
+                    |> List.map
+                        (function
+                            | {DataSource.TypeOfData = typeOfData; DataSource.Value = value;} when typeOfData = TypesAvailable.TypeB ->   
+                                { 
+                                    Value = value
+                                }
+                                |> Some
+
+                            | _ -> None
+                        )
+                    |> List.choose id
+        
+    }
+
+let getData' = 
+
+    let sourceData = 
+        [
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value 2"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value 2"
+            }
+        ]
+
+    {
+        TypeAData = sourceData
+                    |> List.filter
+                        (function
+                        | {DataSource.TypeOfData = typeOfData; DataSource.Value = _;} when typeOfData = TypesAvailable.TypeA -> true
+                        | _ -> false)
+                    |> List.map
+                        (fun x ->
+                            { 
+                                Value = x.Value
+                                OtherValue = 1
+                            }
+                        )
+        
+        TypeBData = sourceData
+                    |> List.filter
+                        (function
+                        | {DataSource.TypeOfData = typeOfData; DataSource.Value = _;} when typeOfData = TypesAvailable.TypeB -> true
+                        | _ -> false)
+                    |> List.map
+                        (fun x ->
+                            { 
+                                Value = x.Value
+                            }
+                        )
+        
+    }
+
+let getData'' = 
+    
+    printfn $"Total iterations"
+
+    let sourceData = 
+        [
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeB
+                Value = "type B value 2"
+            };
+            {
+                TypeOfData = TypesAvailable.TypeA
+                Value = "type A value 2"
+            }
+        ]
+
+    let mutable count = 0
+    let dataToReturn = 
+        {
+            TypeAData = sourceData
+                        |> List.map
+                            (function
+                                | {DataSource.TypeOfData = typeOfData; DataSource.Value = value;} when typeOfData = TypesAvailable.TypeA ->                                
+                                    count <- count + 1
+                                    { 
+                                        Value = value
+                                        OtherValue = 1
+                                    }                                
+                                    |> Some
+
+                                | _ -> 
+                                    count <- count + 1
+                                    None
+                            )
+                        |> List.choose id
+        
+            TypeBData = sourceData
+                        |> List.map
+                            (function
+                                | {DataSource.TypeOfData = typeOfData; DataSource.Value = value;} when typeOfData = TypesAvailable.TypeB ->   
+                                    count <- count + 1
+                                    { 
+                                        Value = value
+                                    }
+                                    |> Some
+
+                                | _ -> 
+                                    count <- count + 1
+                                    None
+                            )
+                        |> List.choose id
+        
+        }
+
+    (dataToReturn, count)
+    
+///////////////////////////////////////////////////////////////////////////////////
+
+let divide (numerator: int) (denominator: int) =
+    numerator / denominator
+
+let compute numerator denominator = 
+    try
+        if numerator < denominator
+        then
+            "This division is only for fractions greater than 1" |> Error
+        else            
+            denominator
+            |> divide numerator
+            |> Ok        
+
+    with
+    | e -> $"Some unexpected error: {e.Message}" |> Error
+
+let compute' numerator denominator = 
+    denominator
+    |> divide numerator
+    |> Ok        
+
+let funkyMessage message =
+    $"I just funk up the message passed to me: {message}"
+
+let actionOnValidResult result =
+    match result with
+    | value when value > 100 -> $"Can take some action on large value" |> Ok
+    | _ -> "Can't action on small values " |> Error
+
+compute 5 10
+|> Result.mapError (fun errorMessage -> $"FAILURE. This is an error from computation. Details: {errorMessage}")
+|> Result.map (fun result -> "SUCCESS. This is the result of computaiton: {result}")
+|> Result.map (fun result -> funkyMessage result)
+//|> Result.bind (actionOnValidResult)
+
+compute 20000 30
+|> Result.mapError (fun errorMessage -> $"FAILURE. This is an error from computation. Details: {errorMessage}")
+|> Result.bind (actionOnValidResult)
+|> Result.map (fun result -> $"SUCCESS. This is the result of computaiton: {result}")
+
+compute' 100 0
+|> Result.mapError (fun errorMessage -> $"FAILURE. This is an error from computation. Details: {errorMessage}")
+
+
+    
+
+
+
+    

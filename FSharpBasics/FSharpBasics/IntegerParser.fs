@@ -1,7 +1,7 @@
 ﻿namespace IntegerParser
 
 module IntegerParser = 
-    let tryParseIntegerFromString (inputString: string) = 
+    let tryParseInteger (inputString: string) = 
         try 
             inputString |> int |> Some
         with :? System.FormatException -> 
@@ -14,7 +14,7 @@ module StringAddExplicitWorkflow =
         printfn message
 
     let stringAddWorkflow string1 string2 string3 string4 = 
-        let int1MayBe = string1 |> tryParseIntegerFromString
+        let int1MayBe = string1 |> tryParseInteger
         match int1MayBe with
         | None -> 
             log $"{string1} is not and integer. Aborting add workflow"
@@ -22,7 +22,7 @@ module StringAddExplicitWorkflow =
         | Some int1 ->
 
             log $"{string1} is an integer. Proceeding with add workflow"    
-            let int2MayBe = string2 |> tryParseIntegerFromString
+            let int2MayBe = string2 |> tryParseInteger
             match int2MayBe with
             | None -> 
                 log $"{string2} is not and integer. Aborting add workflow"
@@ -30,7 +30,7 @@ module StringAddExplicitWorkflow =
             | Some int2 ->
 
                 log $"{string2} is an integer. Proceeding with add workflow"  
-                let int3MayBe = string3 |> tryParseIntegerFromString
+                let int3MayBe = string3 |> tryParseInteger
                 match int3MayBe with
                 | None -> 
                     log $"{string3} is not and integer. Aborting add workflow"
@@ -38,7 +38,7 @@ module StringAddExplicitWorkflow =
                 | Some int3 ->
 
                     log $"{string3} is an integer. Proceeding with add workflow"  
-                    let int4MayBe = string4 |> tryParseIntegerFromString
+                    let int4MayBe = string4 |> tryParseInteger
                     match int4MayBe with
                     | None -> 
                         log $"{string4} is not and integer. Aborting add workflow"
@@ -58,7 +58,7 @@ module StringAddPipeIntoWorkflow =
         number1 + number2
 
     let pipeInto (stringValue, onSuccessfullParseInteger) = 
-        let intMayBe = stringValue |> tryParseIntegerFromString
+        let intMayBe = stringValue |> tryParseInteger
         match intMayBe with
         | None -> 
             log $"{stringValue} is not and integer. Aborting add workflow"
@@ -69,7 +69,7 @@ module StringAddPipeIntoWorkflow =
 
 
     let stringAddWorkflow string1 string2 string3 string4 = 
-        let number1 = string1 |> tryParseIntegerFromString
+        let number1 = string1 |> tryParseInteger
 
         //pipeInto(string1,  |> sum string2)
 
